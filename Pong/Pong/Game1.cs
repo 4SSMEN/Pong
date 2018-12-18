@@ -14,8 +14,9 @@ namespace Pong
 {
     public class Game1 : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        protected GraphicsDeviceManager graphics;
+        protected SpriteBatch spriteBatch;
+        protected ContentManager contentManager;
 
         int ball_x, ball_y, ball_w, ball_h;   //Ball position and dimensions
         int p1_x, p1_y;                       //Player 1 position
@@ -40,6 +41,7 @@ namespace Pong
                 PreferredBackBufferHeight = Constants._HEIGHT * Constants._SIZE
             };
             Content.RootDirectory = "Content";
+            contentManager = Content;
         }
 
         protected override void Initialize()
