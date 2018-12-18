@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
@@ -20,12 +21,16 @@ namespace Pong
         int p1_x, p1_y;                       //Player 1 position
         int p2_x, p2_y;                       //Player 2 position
         int p_w, p_h;                         //Player dimensions
+        float ball_f;
 
         Texture2D ball_tex, p_tex;            //Ball and Player texture
 
         Rectangle ball_hit_box;
         Rectangle p1_hit_box;                 //Ball and Players hit boxes
         Rectangle p2_hit_box;
+
+        float dir_x, dir_y;
+        bool right;
 
         public Game1()
         {
@@ -43,6 +48,7 @@ namespace Pong
             ball_h = 4 * Constants._SIZE;
             ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
             ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+            ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
 
             p_w = 4 * Constants._SIZE;
             p_h = 16 * Constants._SIZE;
@@ -59,6 +65,11 @@ namespace Pong
             ball_hit_box = new Rectangle(ball_x, ball_y, ball_w, ball_h);
             p1_hit_box = new Rectangle(p1_x, p1_y, p_w, p_h);
             p2_hit_box = new Rectangle(p2_x, p2_y, p_w, p_h);
+
+            dir_x = 1;
+            dir_y = 0;
+
+            right = false;
 
             base.Initialize();
         }
@@ -83,7 +94,6 @@ namespace Pong
 
         protected override void UnloadContent()
         {
-
         }
 
         protected override void Update(GameTime gameTime)
@@ -91,9 +101,21 @@ namespace Pong
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            BallMove(4);
+            BallMove(Constants._SIZE);
 
-            PlayerMove(4);
+            PlayerMove(Constants._SIZE * 2);
+
+            KeyboardState keyState = Keyboard.GetState();
+
+            if (keyState.IsKeyDown(Keys.Space))
+            {
+                ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
+                ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+                ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+                dir_x = 1;
+                dir_y = 0;
+                right = false;
+            }
 
             base.Update(gameTime);
         }
@@ -115,12 +137,30 @@ namespace Pong
 
         public void BallMove(int speed)
         {
-            ball_x += speed;
+            ball_x += (int)(speed * dir_x);
+            ball_f += speed * dir_y;
+            ball_y = (int)ball_f;
 
             //TODO: Make the ball move at an angle
 
             ball_hit_box.X = ball_x;
             ball_hit_box.Y = ball_y;
+
+            if ((!right && ball_hit_box.Intersects(p1_hit_box)) || (right && ball_hit_box.Intersects(p2_hit_box)))
+            {
+                right = !right;
+                dir_x = -dir_x;
+                int p_y = p1_y;
+                if (!right)
+                    p_y = p2_y;
+                float delta = ((ball_y + ball_h / 2) - (p_y + p_h / 2));
+                dir_y = delta / p_h * 5;
+                Debug.Print(dir_y + "");
+            }
+
+            if (ball_y <= 0 || ball_y >= Constants._HEIGHT * Constants._SIZE - ball_h)
+                dir_y = -dir_y;
+
         }
 
         public void PlayerMove(int speed)
@@ -129,15 +169,20 @@ namespace Pong
 
             if (keyState.IsKeyDown(Keys.Up))
             {
-                p1_y -= speed;
+                if (!right)
+                    p1_y -= speed;
+                else p2_y -= speed;
             }
 
             if (keyState.IsKeyDown(Keys.Down))
             {
-                p1_y += speed;
+                if (!right)
+                    p1_y += speed;
+                else p2_y += speed;
             }
 
             p1_hit_box.Y = p1_y;
+            p2_hit_box.Y = p2_y;
         }
     }
 }
