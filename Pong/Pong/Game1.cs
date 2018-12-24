@@ -187,7 +187,7 @@ namespace Pong
             p1_hit_box.Y = p1_y;
             p2_hit_box.Y = p2_y;
         }
-        public void score(int ball_x)
+        public void score(int ballposition)
         {
             if (ball_x > (Constants._WIDTH * Constants._SIZE - p_w + 4 * Constants._SIZE) || ball_x < -1 * (4 * Constants._SIZE))
             {
