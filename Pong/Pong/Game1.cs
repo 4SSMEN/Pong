@@ -23,7 +23,7 @@ namespace Pong
         int p2_x, p2_y;                       //Player 2 position
         int p_w, p_h;                         //Player dimensions
         float ball_f;
-
+        int rscore , lscore ;                   //Score 
         Texture2D ball_tex, p_tex;            //Ball and Player texture
 
         Rectangle ball_hit_box;
@@ -72,7 +72,8 @@ namespace Pong
             dir_y = 0;
 
             right = false;
-
+            rscore = 0;
+            lscore =0;
             base.Initialize();
         }
 
@@ -106,7 +107,7 @@ namespace Pong
             BallMove(Constants._SIZE);
 
             PlayerMove(Constants._SIZE * 2);
-
+            score(ball_x);
             KeyboardState keyState = Keyboard.GetState();
 
             if (keyState.IsKeyDown(Keys.Space))
@@ -118,7 +119,7 @@ namespace Pong
                 dir_y = 0;
                 right = false;
             }
-
+            
             base.Update(gameTime);
         }
 
@@ -185,6 +186,28 @@ namespace Pong
 
             p1_hit_box.Y = p1_y;
             p2_hit_box.Y = p2_y;
+        }
+        public void score(int ball_x)
+        {
+            if (ball_x > (Constants._WIDTH * Constants._SIZE - p_w + 4 * Constants._SIZE) || ball_x < -1 * (4 * Constants._SIZE))
+            {
+                if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) lscore++;
+                if (ball_x < 0) rscore++;
+
+                ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
+                ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+                ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+                dir_x = 1;
+                dir_y = 0;
+                right = false;
+                p1_x = Constants._WIDTH * Constants._SIZE - p_w;
+                p1_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
+                p2_x = 0;                                                         
+                p2_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
+                Debug.Print(rscore + " " + lscore + " ");
+            }
+
+
         }
     }
 }
