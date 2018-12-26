@@ -35,12 +35,12 @@ namespace Pong
             hud_font = content.Load<SpriteFont>("Fonts\\HUD" + Constants._SIZE);
             win_font = content.Load<SpriteFont>("Fonts\\WIN" + Constants._SIZE);
 
-            p1_scorePosition.X -= hud_font.MeasureString("Player1 Score: 11").X;
+            p1_scorePosition.X -= hud_font.MeasureString("Player1 Score: 11").X / 2;
 
-            start_position.X -= win_font.MeasureString("Player 1    W-S \nPlayer 2   UP-Down").X / 2;
-            start_position.Y -= win_font.MeasureString("a\na").Y;
+            start_position.X -= win_font.MeasureString("Player 1    W-S \nPlayer 2   UP-Down").X / 4;
+            start_position.Y -= win_font.MeasureString("a\na").Y / 2;
 
-            win_position.X -= win_font.MeasureString("Player 1 Wins").X / 2;
+            win_position.X -= win_font.MeasureString("Player 1 Wins").X / 4;
         }
 
         public void Draw(SpriteBatch spriteBatch, State state, int p1_score, int p2_score)
@@ -48,17 +48,17 @@ namespace Pong
             switch (state)
             {
                 case State.Start:
-                    spriteBatch.DrawString(win_font, "Player 1    W-S \nPlayer 2   UP-Down", start_position, Color.White);
-                    spriteBatch.DrawString(hud_font, "\n\n\n\n\npress Enter to continue", start_position, Color.White);
+                    spriteBatch.DrawString(win_font, "Player 1    W-S \nPlayer 2   UP-Down", start_position, Color.White, 0, new Vector2(), 0.5f, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(hud_font, "\n\n\n\n\npress Enter to continue", start_position, Color.White, 0, new Vector2(), 0.5f, SpriteEffects.None, 0);
                     break;
 
                 case State.Game:
-                    spriteBatch.DrawString(hud_font, "Player 1  Score: " + p1_score, p1_scorePosition, Color.White);
-                    spriteBatch.DrawString(hud_font, "Player 2  Score: " + p2_score, p2_scorePosition, Color.White);
+                    spriteBatch.DrawString(hud_font, "Player 1  Score: " + p1_score, p1_scorePosition, Color.White, 0, new Vector2(), 0.5f, SpriteEffects.None, 0);
+                    spriteBatch.DrawString(hud_font, "Player 2  Score: " + p2_score, p2_scorePosition, Color.White, 0, new Vector2(), 0.5f, SpriteEffects.None, 0);
                     break;
 
                 case State.End:
-                    spriteBatch.DrawString(win_font, "Player " + ((p1_score > p2_score) ? 1 : 2) + " Wins", win_position, Color.White);
+                    spriteBatch.DrawString(win_font, "Player " + ((p1_score > p2_score) ? 1 : 2) + "  Wins", win_position, Color.White, 0, new Vector2(), 0.5f, SpriteEffects.None, 0);
                     break;
             }
         }

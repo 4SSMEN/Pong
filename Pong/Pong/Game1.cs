@@ -139,7 +139,7 @@ namespace Pong
 
                     Score();
 
-                    if (p1_score == 11 || p2_score == 11)
+                    if (p1_score == Constants._WINSCORE || p2_score == Constants._WINSCORE)
                         GameState = State.End;
 
                     if (keyState.IsKeyDown(Keys.Space))
@@ -159,6 +159,7 @@ namespace Pong
             switch (GameState)
             {
                 case State.Game:
+                case State.End:
                     spriteBatch.Draw(ball_tex, ball_hit_box, Color.White);
                     spriteBatch.Draw(p_tex, p1_hit_box, Color.White);
                     spriteBatch.Draw(p_tex, p2_hit_box, Color.White);
@@ -228,9 +229,9 @@ namespace Pong
                 player_scored.Play();
 
                 if (ball_x >= Constants._WIDTH * Constants._SIZE - p_w)
-                    p1_score++;
-                else if (ball_x <= 0)
                     p2_score++;
+                else if (ball_x <= 0)
+                    p1_score++;
 
                 ResetBall();
             }
