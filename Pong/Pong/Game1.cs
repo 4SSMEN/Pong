@@ -32,7 +32,9 @@ namespace Pong
 
         float dir_x, dir_y;
         bool right;
-
+        SpriteFont HUDfont;
+        Vector2 lsPosition;
+        Vector2 rsPosition;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this)
@@ -74,6 +76,10 @@ namespace Pong
             right = false;
             rscore = 0;
             lscore =0;
+            rsPosition.X = 30;
+            rsPosition.Y = 30 ;
+            lsPosition.X = (Constants._WIDTH * Constants._SIZE - p_w) - 2*Constants._WIDTH;
+            lsPosition.Y = 30;
             base.Initialize();
         }
 
@@ -92,7 +98,7 @@ namespace Pong
 
             ball_tex.SetData(ball_data);
             p_tex.SetData(p_data);
-
+            HUDfont = Content.Load<SpriteFont>("HUDfont");
         }
 
         protected override void UnloadContent()
@@ -107,7 +113,7 @@ namespace Pong
             BallMove(Constants._SIZE);
 
             PlayerMove(Constants._SIZE * 2);
-            score(ball_x);
+            Score();
             KeyboardState keyState = Keyboard.GetState();
 
             if (keyState.IsKeyDown(Keys.Space))
@@ -132,7 +138,8 @@ namespace Pong
             spriteBatch.Draw(ball_tex, ball_hit_box, Color.White);
             spriteBatch.Draw(p_tex, p1_hit_box, Color.White);
             spriteBatch.Draw(p_tex, p2_hit_box, Color.White);
-
+            spriteBatch.DrawString(HUDfont, "Player 1    Score : "+rscore.ToString(), rsPosition, Color.White);
+            spriteBatch.DrawString(HUDfont, "Player 2    Score : " + lscore.ToString(), lsPosition, Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -187,23 +194,24 @@ namespace Pong
             p1_hit_box.Y = p1_y;
             p2_hit_box.Y = p2_y;
         }
-        public void score(int ballposition)
+        public void Score()
         {
             if (ball_x > (Constants._WIDTH * Constants._SIZE - p_w + 4 * Constants._SIZE) || ball_x < -1 * (4 * Constants._SIZE))
             {
-                if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) lscore++;
-                if (ball_x < 0) rscore++;
+                if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) rscore++;
+                if (ball_x < 0) lscore++;
 
                 ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
                 ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
                 ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
-                dir_x = 1;
+                dir_x = -dir_x;
                 dir_y = 0;
-                right = false;
+                right = !right ;
                 p1_x = Constants._WIDTH * Constants._SIZE - p_w;
                 p1_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
                 p2_x = 0;                                                         
                 p2_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
+                
                 Debug.Print(rscore + " " + lscore + " ");
             }
 
