@@ -17,7 +17,7 @@ namespace Pong
         protected GraphicsDeviceManager graphics;
         protected SpriteBatch spriteBatch;
         protected ContentManager contentManager;
-        bool pause; 
+        bool pause,start; 
         int ball_x, ball_y, ball_w, ball_h;   //Ball position and dimensions
         int p1_x, p1_y;                       //Player 1 position
         int p2_x, p2_y;                       //Player 2 position
@@ -37,6 +37,7 @@ namespace Pong
         Vector2 lsPosition;
         Vector2 rsPosition;
         Vector2 winPosition;
+        Vector2 controls; 
         SoundEffect hitball;
         SoundEffect win;
         SoundEffect wall;
@@ -52,8 +53,10 @@ namespace Pong
         }
 
         protected override void Initialize()
-        {
-            pause = false; 
+        {   
+          
+            pause = false;
+            start = true; 
             ball_w = 4 * Constants._SIZE;
             ball_h = 4 * Constants._SIZE;
             ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
@@ -88,6 +91,7 @@ namespace Pong
             lsPosition.Y = 30;
             winPosition.X= Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2 - Constants._WIDTH;
             winPosition.Y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2 -10 ;
+         
             base.Initialize();
         }
 
@@ -120,6 +124,11 @@ namespace Pong
 
         protected override void Update(GameTime gameTime)
         {
+            if (start)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Enter)) start = false;
+            }
+            else 
             if (!pause) { 
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -153,7 +162,12 @@ namespace Pong
             GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
-
+            if (start)
+            {
+                spriteBatch.DrawString(Winfont, "Player 1    W-S \nPlayer 2   UP-Down", winPosition, Color.White);
+                spriteBatch.DrawString(HUDfont, "\n\n\n\n\npress Enter to continue", winPosition, Color.White);
+            }
+            else { 
             spriteBatch.Draw(ball_tex, ball_hit_box, Color.White);
             spriteBatch.Draw(p_tex, p1_hit_box, Color.White);
             spriteBatch.Draw(p_tex, p2_hit_box, Color.White);
@@ -165,6 +179,7 @@ namespace Pong
                   spriteBatch.DrawString(Winfont, "Player 1    Wins " , winPosition, Color.White);
                 else
                   spriteBatch.DrawString(Winfont, "Player 2    Wins ", winPosition, Color.White);
+            }
             }
             spriteBatch.End();
 
@@ -247,7 +262,7 @@ namespace Pong
 
                 if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) rscore++;
                 if (ball_x < 0) lscore++;
-                if (lscore == 11 || rscore == 11) pause = true;
+                if (lscore == 1 || rscore == 1) pause = true;
                 ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
                 ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
                 ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
