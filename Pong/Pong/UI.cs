@@ -12,32 +12,55 @@ using Microsoft.Xna.Framework.Media;
 
 namespace Pong
 {
-    public class UI : Game1
+    public class UI
     {
 
-        protected override void Initialize()
+        Vector2 p1_scorePosition, p2_scorePosition;     //Score positions
+
+        Vector2 start_position, win_position;           //Win text position
+
+        SpriteFont hud_font, win_font;                  //Fonts
+
+        public void Initialize()
         {
-            base.Initialize();
+            p1_scorePosition = new Vector2(Constants._WIDTH * Constants._SIZE - 7 * Constants._SIZE, 7 * Constants._SIZE);
+            p2_scorePosition = new Vector2(7 * Constants._SIZE, 7 * Constants._SIZE);
+
+            start_position = new Vector2(Constants._WIDTH * Constants._SIZE / 2, Constants._HEIGHT * Constants._SIZE / 2);
+            win_position = new Vector2(Constants._WIDTH * Constants._SIZE / 2, Constants._HEIGHT * Constants._SIZE / 2);
         }
 
-        protected override void LoadContent()
+        public  void LoadContent(ContentManager content)
         {
-            base.LoadContent();
+            hud_font = content.Load<SpriteFont>("Fonts\\HUD" + Constants._SIZE);
+            win_font = content.Load<SpriteFont>("Fonts\\WIN" + Constants._SIZE);
+
+            p1_scorePosition.X -= hud_font.MeasureString("Player1 Score: 11").X;
+
+            start_position.X -= win_font.MeasureString("Player 1    W-S \nPlayer 2   UP-Down").X / 2;
+            start_position.Y -= win_font.MeasureString("a\na").Y;
+
+            win_position.X -= win_font.MeasureString("Player 1 Wins").X / 2;
         }
 
-        protected override void UnloadContent()
+        public void Draw(SpriteBatch spriteBatch, State state, int p1_score, int p2_score)
         {
-            base.UnloadContent();
-        }
+            switch (state)
+            {
+                case State.Start:
+                    spriteBatch.DrawString(win_font, "Player 1    W-S \nPlayer 2   UP-Down", start_position, Color.White);
+                    spriteBatch.DrawString(hud_font, "\n\n\n\n\npress Enter to continue", start_position, Color.White);
+                    break;
 
-        protected override void Update(GameTime gameTime)
-        {
-            base.Update(gameTime);
-        }
+                case State.Game:
+                    spriteBatch.DrawString(hud_font, "Player 1  Score: " + p1_score, p1_scorePosition, Color.White);
+                    spriteBatch.DrawString(hud_font, "Player 2  Score: " + p2_score, p2_scorePosition, Color.White);
+                    break;
 
-        protected override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
+                case State.End:
+                    spriteBatch.DrawString(win_font, "Player " + ((p1_score > p2_score) ? 1 : 2) + " Wins", win_position, Color.White);
+                    break;
+            }
         }
     }
 }

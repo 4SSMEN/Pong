@@ -12,35 +12,37 @@ using Microsoft.Xna.Framework.Media;
 
 namespace Pong
 {
+    public enum State { Start, Game, End };
+
     public class Game1 : Game
     {
-        protected GraphicsDeviceManager graphics;
-        protected SpriteBatch spriteBatch;
-        protected ContentManager contentManager;
-        bool pause,start; 
-        int ball_x, ball_y, ball_w, ball_h;   //Ball position and dimensions
-        int p1_x, p1_y;                       //Player 1 position
-        int p2_x, p2_y;                       //Player 2 position
-        int p_w, p_h;                         //Player dimensions
-        float ball_f;
-        int rscore , lscore ;                   //Score 
-        Texture2D ball_tex, p_tex;            //Ball and Player texture
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+
+        int ball_x, ball_y, ball_w, ball_h;             //Ball position and dimensions
+        float ball_f;                                   //Ball Y position as float
+
+        int p1_x, p1_y;                                 //Player 1 position
+        int p2_x, p2_y;                                 //Player 2 position
+        int p_w, p_h;                                   //Player dimensions
+
+        Texture2D ball_tex, p_tex;                      //Ball and Player texture
 
         Rectangle ball_hit_box;
-        Rectangle p1_hit_box;                 //Ball and Players hit boxes
+        Rectangle p1_hit_box;                           //Ball and Players hit boxes
         Rectangle p2_hit_box;
 
         float dir_x, dir_y;
         bool right;
-        SpriteFont HUDfont;
-        SpriteFont Winfont;
-        Vector2 lsPosition;
-        Vector2 rsPosition;
-        Vector2 winPosition;
-        Vector2 controls; 
-        SoundEffect hitball;
-        SoundEffect win;
-        SoundEffect wall;
+
+        int p1_score, p2_score;                         //Score 
+
+        SoundEffect padel_hit, player_scored, wall_hit; //SFX
+
+        UI gameUI;
+
+        public State GameState { get; private set; }
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this)
@@ -48,15 +50,12 @@ namespace Pong
                 PreferredBackBufferWidth = Constants._WIDTH * Constants._SIZE,
                 PreferredBackBufferHeight = Constants._HEIGHT * Constants._SIZE
             };
+
             Content.RootDirectory = "Content";
-            contentManager = Content;
         }
 
         protected override void Initialize()
-        {   
-          
-            pause = false;
-            start = true; 
+        {
             ball_w = 4 * Constants._SIZE;
             ball_h = 4 * Constants._SIZE;
             ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
@@ -83,15 +82,11 @@ namespace Pong
             dir_y = 0;
 
             right = false;
-            rscore = 0;
-            lscore =0;
-            rsPosition.X = 30;
-            rsPosition.Y = 30 ;
-            lsPosition.X = (Constants._WIDTH * Constants._SIZE - p_w) - 2*Constants._WIDTH;
-            lsPosition.Y = 30;
-            winPosition.X= Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2 - Constants._WIDTH;
-            winPosition.Y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2 -10 ;
-         
+
+            gameUI = new UI();
+
+            gameUI.Initialize();
+
             base.Initialize();
         }
 
@@ -110,12 +105,14 @@ namespace Pong
 
             ball_tex.SetData(ball_data);
             p_tex.SetData(p_data);
-            HUDfont = Content.Load<SpriteFont>("HUDfont");
-            Winfont = Content.Load<SpriteFont>("Winfont");
-            hitball = Content.Load<SoundEffect>("ping_pong_8bit_beeep");
-            win = Content.Load<SoundEffect>("win");
-            wall = Content.Load<SoundEffect>("wall");
 
+            padel_hit = Content.Load<SoundEffect>("SFX\\Padel Hit");
+            player_scored = Content.Load<SoundEffect>("SFX\\Player Scored");
+            wall_hit = Content.Load<SoundEffect>("SFX\\Wall Hit");
+
+            gameUI.LoadContent(Content);
+
+            base.LoadContent();
         }
 
         protected override void UnloadContent()
@@ -124,36 +121,32 @@ namespace Pong
 
         protected override void Update(GameTime gameTime)
         {
-            if (start)
-            {
-                if (Keyboard.GetState().IsKeyDown(Keys.Enter)) start = false;
-            }
-            else 
-            if (!pause) { 
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
-
-            BallMove(Constants._SIZE);
-
-            PlayerMove(Constants._SIZE * 2);
-            Score();
             KeyboardState keyState = Keyboard.GetState();
 
-            if (keyState.IsKeyDown(Keys.Space))
+            if (keyState.IsKeyDown(Keys.Escape))
+                Exit();
+
+            switch (GameState)
             {
-                ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
-                ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
-                ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
-                dir_x = 1;
-                dir_y = 0;
-                right = false;
+                case State.Start:
+                    if (keyState.IsKeyDown(Keys.Enter))
+                        GameState = State.Game;
+                    break;
+
+                case State.Game:
+                    BallMove(Constants._SIZE);
+                    PlayerMove(Constants._SIZE * 2);
+
+                    Score();
+
+                    if (p1_score == 11 || p2_score == 11)
+                        GameState = State.End;
+
+                    if (keyState.IsKeyDown(Keys.Space))
+                        ResetBall();
+                    break;
             }
-            }
-            else
-            {
-                if (Keyboard.GetState().IsKeyDown(Keys.Enter)) Exit();
-                else pause = true; 
-            }
+
             base.Update(gameTime);
         }
 
@@ -162,25 +155,18 @@ namespace Pong
             GraphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
-            if (start)
+
+            switch (GameState)
             {
-                spriteBatch.DrawString(Winfont, "Player 1    W-S \nPlayer 2   UP-Down", winPosition, Color.White);
-                spriteBatch.DrawString(HUDfont, "\n\n\n\n\npress Enter to continue", winPosition, Color.White);
+                case State.Game:
+                    spriteBatch.Draw(ball_tex, ball_hit_box, Color.White);
+                    spriteBatch.Draw(p_tex, p1_hit_box, Color.White);
+                    spriteBatch.Draw(p_tex, p2_hit_box, Color.White);
+                    break;
             }
-            else { 
-            spriteBatch.Draw(ball_tex, ball_hit_box, Color.White);
-            spriteBatch.Draw(p_tex, p1_hit_box, Color.White);
-            spriteBatch.Draw(p_tex, p2_hit_box, Color.White);
-            spriteBatch.DrawString(HUDfont, "Player 1    Score : "+rscore.ToString(), rsPosition, Color.White);
-            spriteBatch.DrawString(HUDfont, "Player 2    Score : " + lscore.ToString(), lsPosition, Color.White);
-            if (pause)
-            {   
-                if(rscore>lscore)
-                  spriteBatch.DrawString(Winfont, "Player 1    Wins " , winPosition, Color.White);
-                else
-                  spriteBatch.DrawString(Winfont, "Player 2    Wins ", winPosition, Color.White);
-            }
-            }
+
+            gameUI.Draw(spriteBatch, GameState, p1_score, p2_score);
+
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -192,92 +178,73 @@ namespace Pong
             ball_f += speed * dir_y;
             ball_y = (int)ball_f;
 
-            //TODO: Make the ball move at an angle
-
             ball_hit_box.X = ball_x;
             ball_hit_box.Y = ball_y;
 
             if ((!right && ball_hit_box.Intersects(p1_hit_box)) || (right && ball_hit_box.Intersects(p2_hit_box)))
             {
-                hitball.Play();
+                padel_hit.Play();
+
                 right = !right;
                 dir_x = -dir_x;
+
                 int p_y = p1_y;
                 if (!right)
                     p_y = p2_y;
+
                 float delta = ((ball_y + ball_h / 2) - (p_y + p_h / 2));
                 dir_y = delta / p_h * 5;
-                Debug.Print(dir_y + "");
             }
 
             if (ball_y <= 0 || ball_y >= Constants._HEIGHT * Constants._SIZE - ball_h)
             {
-                wall.Play();
+                wall_hit.Play();
                 dir_y = -dir_y;
             }
-                
-
         }
 
         public void PlayerMove(int speed)
         {
             KeyboardState keyState = Keyboard.GetState();
 
-            if (keyState.IsKeyDown(Keys.Up))
-            {
-                //if (!right)
-                    p1_y -= speed;
-                //else p2_y -= speed;
-            }
+            if (keyState.IsKeyDown(Keys.Up) && p1_y > 0)
+                p1_y -= speed;
+            if (keyState.IsKeyDown(Keys.Down) && p1_y < Constants._HEIGHT *Constants._SIZE - p_h)
+                p1_y += speed;
 
-            if (keyState.IsKeyDown(Keys.Down))
-            {
-                //if (!right)
-                    p1_y += speed;
-                //else p2_y += speed;
-            }
-            if (keyState.IsKeyDown(Keys.W))
-            {
-                //if (!right)
-                    //p1_y -= speed;
-               // else
-                 p2_y -= speed;
-            }
-
-            if (keyState.IsKeyDown(Keys.S))
-            {
-                //if (!right)
-                //p1_y += speed;
-                //else
+            if (keyState.IsKeyDown(Keys.W) && p2_y > 0)
+                p2_y -= speed;
+            if (keyState.IsKeyDown(Keys.S) && p2_y < Constants._HEIGHT * Constants._SIZE - p_h)
                 p2_y += speed;
-            }
+
             p1_hit_box.Y = p1_y;
             p2_hit_box.Y = p2_y;
         }
+
         public void Score()
         {
-            if (ball_x > (Constants._WIDTH * Constants._SIZE - p_w + 4 * Constants._SIZE) || ball_x < -1 * (4 * Constants._SIZE))
+            if (ball_x >= Constants._WIDTH * Constants._SIZE - p_w  || ball_x <= 0)
             {
-                win.Play();
+                player_scored.Play();
 
-                if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) rscore++;
-                if (ball_x < 0) lscore++;
-                if (lscore == 1 || rscore == 1) pause = true;
-                ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
-                ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
-                ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
-                dir_x = -dir_x;
-                dir_y = 0;
-                right = !right ;
-                p1_x = Constants._WIDTH * Constants._SIZE - p_w;
-                p1_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
-                p2_x = 0;                                                         
-                p2_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
-                
-                Debug.Print(rscore + " " + lscore + " ");
+                if (ball_x >= Constants._WIDTH * Constants._SIZE - p_w)
+                    p1_score++;
+                else if (ball_x <= 0)
+                    p2_score++;
+
+                ResetBall();
             }
+        }
 
+        public void ResetBall()
+        {
+            ball_x = Constants._WIDTH * Constants._SIZE / 2 - ball_w / 2;
+            ball_y = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
+            ball_f = Constants._HEIGHT * Constants._SIZE / 2 - ball_h / 2;
 
+            dir_y = 0;
+
+            p1_y = p2_y = Constants._HEIGHT * Constants._SIZE / 2 - p_h / 2;
         }
     }
 }
