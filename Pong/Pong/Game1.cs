@@ -36,7 +36,10 @@ namespace Pong
         SpriteFont Winfont;
         Vector2 lsPosition;
         Vector2 rsPosition;
-        Vector2 winPosition; 
+        Vector2 winPosition;
+        SoundEffect hitball;
+        SoundEffect win;
+        SoundEffect wall;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this)
@@ -105,6 +108,10 @@ namespace Pong
             p_tex.SetData(p_data);
             HUDfont = Content.Load<SpriteFont>("HUDfont");
             Winfont = Content.Load<SpriteFont>("Winfont");
+            hitball = Content.Load<SoundEffect>("ping_pong_8bit_beeep");
+            win = Content.Load<SoundEffect>("win");
+            wall = Content.Load<SoundEffect>("wall");
+
         }
 
         protected override void UnloadContent()
@@ -177,6 +184,7 @@ namespace Pong
 
             if ((!right && ball_hit_box.Intersects(p1_hit_box)) || (right && ball_hit_box.Intersects(p2_hit_box)))
             {
+                hitball.Play();
                 right = !right;
                 dir_x = -dir_x;
                 int p_y = p1_y;
@@ -188,7 +196,11 @@ namespace Pong
             }
 
             if (ball_y <= 0 || ball_y >= Constants._HEIGHT * Constants._SIZE - ball_h)
+            {
+                wall.Play();
                 dir_y = -dir_y;
+            }
+                
 
         }
 
@@ -231,6 +243,8 @@ namespace Pong
         {
             if (ball_x > (Constants._WIDTH * Constants._SIZE - p_w + 4 * Constants._SIZE) || ball_x < -1 * (4 * Constants._SIZE))
             {
+                win.Play();
+
                 if (ball_x > Constants._WIDTH * Constants._SIZE - p_w) rscore++;
                 if (ball_x < 0) lscore++;
                 if (lscore == 11 || rscore == 11) pause = true;
