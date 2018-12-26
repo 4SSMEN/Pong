@@ -198,18 +198,32 @@ namespace Pong
 
             if (keyState.IsKeyDown(Keys.Up))
             {
-                if (!right)
+                //if (!right)
                     p1_y -= speed;
-                else p2_y -= speed;
+                //else p2_y -= speed;
             }
 
             if (keyState.IsKeyDown(Keys.Down))
             {
-                if (!right)
+                //if (!right)
                     p1_y += speed;
-                else p2_y += speed;
+                //else p2_y += speed;
+            }
+            if (keyState.IsKeyDown(Keys.W))
+            {
+                //if (!right)
+                    //p1_y -= speed;
+               // else
+                 p2_y -= speed;
             }
 
+            if (keyState.IsKeyDown(Keys.S))
+            {
+                //if (!right)
+                //p1_y += speed;
+                //else
+                p2_y += speed;
+            }
             p1_hit_box.Y = p1_y;
             p2_hit_box.Y = p2_y;
         }
